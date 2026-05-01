@@ -1,0 +1,22 @@
+{
+  "name": "@proj-airi/expression-api-server",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Lightweight HTTP + WebSocket server for Live2D expression control bridge between OpenClaw agent and Airi WebUI",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "superjson": "^2.2.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

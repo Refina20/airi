@@ -10,6 +10,7 @@ import { createLive2DLipSync } from '@proj-airi/model-driver-lipsync'
 import { wlipsyncProfile } from '@proj-airi/model-driver-lipsync/shared/wlipsync'
 import { createPlaybackManager, createSpeechPipeline } from '@proj-airi/pipelines-audio'
 import { Live2DScene, useLive2d } from '@proj-airi/stage-ui-live2d'
+import { useExpressionStore } from '@proj-airi/stage-ui-live2d/stores/expression-store'
 import { ThreeScene } from '@proj-airi/stage-ui-three'
 import { animations } from '@proj-airi/stage-ui-three/assets/vrm'
 import { createQueue } from '@proj-airi/stream-kit'
@@ -137,7 +138,23 @@ const emotionsQueue = createQueue<EmotionPayload>({
         await vrmViewerRef.value!.setExpression(value, ctx.data.intensity)
       }
       else if (stageModelRenderer.value === 'live2d') {
-        currentMotion.value = { group: EMOTION_EmotionMotionName_value[ctx.data.name] }
+        const expressionStore = useExpressionStore()
+        const motionGroup = EMOTION_EmotionMotionName_value[ctx.data.name]
+
+        // Set expression value (maps emotion name to expression group)
+        const exprName = ctx.data.name === 'surprised' ? 'surprised' : ctx.data.name
+        const resolved = expressionStore.resolve(exprName)
+        if (resolved) {
+          const value = ctx.data.intensity > 0.5 ? 1 : 0
+          expressionStore.set(exprName, value)
+          console.debug('[emotion] Applied expression:', exprName, 'value:', value)
+        }
+        else {
+          console.warn('[emotion] Expression not found:', exprName, 'Available:', expressionStore.allNames())
+        }
+
+        // Set motion
+        currentMotion.value = { group: motionGroup }
       }
     },
   ],

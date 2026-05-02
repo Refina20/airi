@@ -418,5 +418,6 @@ export const useExpressionStore = defineStore('live2d-expressions', () => {
     setLlmMode,
     setLlmExposed,
     isExposedToLlm,
+    allNames,
   }
 })

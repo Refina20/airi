@@ -22,7 +22,9 @@ export function useEmotionsMessageQueue(emotionsQueue: UseQueueReturn<EmotionPay
   }
 
   function parseActEmotion(content: string) {
-    const match = /<\|ACT\s*(?::\s*)?(\{[\s\S]*\})\|>/i.exec(content)
+    // Match ACT tags: <|ACT {...}|> or <|ACT: {...}|>
+    // Non-greedy match to handle nested JSON properly
+    const match = /<\|ACT\s*(?::\s*)?(\{.+?\})\|>/is.exec(content)
     if (!match)
       return { ok: false, emotion: null as EmotionPayload | null }
 

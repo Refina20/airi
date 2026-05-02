@@ -48,7 +48,7 @@ const tools = [
       'Optionally provide a duration in seconds for auto-reset.',
       'Examples: expression_set("Cry", true), expression_set("Blush", 0.7, 3)',
     ].join(' '),
-    execute: async ({ name, value, duration }) => {
+    execute: async (params: { name: string, value: boolean | number, duration?: number }) => {
       const available = await isApiAvailable()
       if (!available) {
         return JSON.stringify({ success: false, error: 'Expression API server not available. Please start the expression-api-server.' })
@@ -56,7 +56,7 @@ const tools = [
 
       const result = await fetchExpressionApi('/set', {
         method: 'POST',
-        body: JSON.stringify({ name, value, duration }),
+        body: JSON.stringify({ name: params.name, value: params.value, duration: params.duration }),
       })
       return JSON.stringify(result)
     },
@@ -74,13 +74,13 @@ const tools = [
       'Get the current state of a Live2D expression or parameter.',
       'Omit the name to list all available expressions with their current values.',
     ].join(' '),
-    execute: async ({ name }) => {
+    execute: async (params: { name?: string }) => {
       const available = await isApiAvailable()
       if (!available) {
         return JSON.stringify({ success: false, error: 'Expression API server not available.' })
       }
 
-      const result = await fetchExpressionApi(name ? `?name=${encodeURIComponent(name)}` : '')
+      const result = await fetchExpressionApi(params.name ? `?name=${encodeURIComponent(params.name)}` : '')
       return JSON.stringify(result)
     },
     parameters: z.object({
@@ -95,7 +95,7 @@ const tools = [
       'Toggle a Live2D expression (flip between default and active state).',
       'Optionally provide a duration in seconds for auto-reset.',
     ].join(' '),
-    execute: async ({ name, duration }) => {
+    execute: async (params: { name: string, duration?: number }) => {
       const available = await isApiAvailable()
       if (!available) {
         return JSON.stringify({ success: false, error: 'Expression API server not available.' })
@@ -103,7 +103,7 @@ const tools = [
 
       const result = await fetchExpressionApi('/toggle', {
         method: 'POST',
-        body: JSON.stringify({ name, duration }),
+        body: JSON.stringify({ name: params.name, duration: params.duration }),
       })
       return JSON.stringify(result)
     },

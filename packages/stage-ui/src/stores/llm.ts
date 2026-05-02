@@ -4,6 +4,7 @@ import type { ChatProvider } from '@xsai-ext/providers/utils'
 import type { Message, Tool } from '@xsai/shared-chat'
 
 import { streamFrom as coreStreamFrom, isToolRelatedError, modelKey } from '@proj-airi/core-agent'
+import { expressionTools } from '@proj-airi/stage-ui-live2d/tools/expression-tools'
 import { listModels } from '@xsai/model'
 import { uniqBy } from 'es-toolkit'
 import { defineStore } from 'pinia'
@@ -65,6 +66,7 @@ export const useLLM = defineStore('llm', () => {
               ...await mcp(),
               ...await debug(),
               ...await createSparkCommandTool({ sendSparkCommand }),
+              ...await expressionTools(),
               ...await llmToolsStore.activeTools,
             ].toReversed(),
             tool => toolNameFrom(tool) ?? tool,

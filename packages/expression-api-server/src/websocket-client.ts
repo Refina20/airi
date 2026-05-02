@@ -5,7 +5,7 @@
  * and applies expression changes to the Live2D model.
  */
 
-import type { ExpressionEntry, ExpressionGroupDefinition, WebSocketMessage } from '@proj-airi/expression-api-server/types'
+import type { ExpressionEntry, ExpressionGroupDefinition, WebSocketMessage } from './types.js'
 
 interface ExpressionWebSocketClientOptions {
   /** WebSocket URL (default: ws://127.0.0.1:3100/ws/expressions) */

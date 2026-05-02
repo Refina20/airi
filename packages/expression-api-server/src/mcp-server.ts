@@ -1,8 +1,15 @@
+#!/usr/bin/env node
 /**
- * OpenClaw MCP Server - Expression Control
+ * Expression MCP Server
  *
- * This is a standalone MCP server that exposes expression control tools
- * to OpenClaw agents via stdio.
+ * This is an MCP (Model Context Protocol) server that wraps the
+ * expression-api-server HTTP API, allowing OpenClaw agents to
+ * control Live2D expressions.
+ *
+ * Usage: node mcp-server.js
+ *
+ * The server communicates with the expression-api-server at
+ * http://127.0.0.1:3100 and exposes MCP tools for expression control.
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -35,18 +42,15 @@ async function isApiAvailable(): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------------------
-// Server Setup
+// MCP Server Setup
 // ---------------------------------------------------------------------------
 
 const server = new McpServer({
-  name: 'expression-control',
+  name: 'airi-expression-mcp',
   version: '1.0.0',
 })
 
-// ---------------------------------------------------------------------------
-// Tool Definitions
-// ---------------------------------------------------------------------------
-
+// Register tools
 server.registerTool(
   'expression_set',
   {

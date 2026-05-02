@@ -28,6 +28,10 @@ export interface ExpressionEntry {
    * Used by toggle to know what value to set when activating
    */
   targetValue: number
+  /**
+   * Timer handle for auto-reset (managed internally)
+   */
+  resetTimer?: ReturnType<typeof setTimeout>
 }
 
 /**
@@ -85,12 +89,14 @@ export interface ExpressionToggleRequest {
  * WebSocket message types for expression changes
  */
 export type WebSocketMessageType
-  = | 'expression_change'
+  = 'expression_change'
     | 'expression_reset'
     | 'expression_save_defaults'
     | 'model_loaded'
     | 'model_unloaded'
     | 'register_model'
+    | 'model_registered'
+    | 'set'
 
 /**
  * WebSocket message payload

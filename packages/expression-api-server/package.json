@@ -9,9 +9,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hono/node-server": "^1.8.0",
+    "@modelcontextprotocol/sdk": "catalog:",
     "hono": "^4.0.0",
     "superjson": "^2.2.1",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/ws": "^8.5.13",

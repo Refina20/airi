@@ -16,6 +16,9 @@ import { WebSocketServer } from 'ws'
 
 import { ExpressionStore } from './store.js'
 
+// Minimal WebSocket interface shared between ws and DOM
+interface WsLike { on: (event: string, handler: (...args: any[]) => void) => any, readyState: number, send: (data: string) => void, close: () => void }
+
 // ---- Global Store ----------------------------------------------------------
 
 const store = new ExpressionStore()
@@ -124,7 +127,7 @@ export async function startServer(port: number = 3100) {
   server.on('upgrade', (request: IncomingMessage, socket: any, head: Buffer) => {
     const url = new URL(request.url || '', `http://localhost:${port}`)
     if (url.pathname === '/ws/expressions') {
-      wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.handleUpgrade(request, socket, head, (ws: any) => {
         wss.emit('connection', ws, request)
       })
     }
@@ -142,4 +145,9 @@ export async function startServer(port: number = 3100) {
   console.log(`  GET  /api/expressions/model    - Get current model ID`)
 
   return { server, store }
+}
+
+// ---- CLI Entry Point -------------------------------------------------------
+if (import.meta.url.endsWith('server.ts')) {
+  startServer().catch(console.error)
 }

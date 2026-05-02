@@ -23,7 +23,7 @@ export class ExpressionStore {
   private modelId = ''
 
   /** WebSocket clients subscribed to expression changes */
-  private wsClients: Set<WebSocket> = new Set()
+  private wsClients: Set<any> = new Set()
 
   /** Auto-reset timers */
   private timers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -96,6 +96,10 @@ export class ExpressionStore {
 
     // Direct parameter
     this.applyValue(resolved.entry, numericValue, duration)
+    this.broadcast({
+      type: 'expression_change',
+      payload: { name, state: this.toState(resolved.entry), action: 'set' },
+    })
     return { success: true, state: this.toState(resolved.entry) }
   }
 
@@ -226,7 +230,7 @@ export class ExpressionStore {
   /**
    * Register WebSocket client for expression change notifications
    */
-  registerWsClient(ws: WebSocket): void {
+  registerWsClient(ws: any): void {
     this.wsClients.add(ws)
     ws.addEventListener('close', () => {
       this.wsClients.delete(ws)

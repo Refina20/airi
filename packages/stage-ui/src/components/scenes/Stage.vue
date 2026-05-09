@@ -251,6 +251,69 @@ const playbackManager = createPlaybackManager<AudioBuffer>({
   ownerOverflowPolicy: 'steal-oldest',
 })
 
+// ---- P1: Voice Settings Middleware Integration ----
+const MIDDLEWARE_API = 'http://127.0.0.1:3100/api/voice/settings'
+
+interface MiddlewareVoiceSettings {
+  success: boolean
+  voiceId?: string
+  provider?: string
+  model?: string
+}
+
+/**
+ * Fetch voice settings from expression-api-server middleware
+ * Falls back to null if middleware is unavailable
+ */
+async function fetchVoiceSettingsFromMiddleware(): Promise<MiddlewareVoiceSettings | null> {
+  try {
+    const res = await fetch(`${MIDDLEWARE_API}/quick`, {
+      signal: AbortSignal.timeout(500),
+    })
+    if (res.ok) {
+      return await res.json()
+    }
+  }
+  catch {
+    // Middleware unavailable, will use localStorage fallback
+  }
+  return null
+}
+
+/**
+ * P1: TTS Warm-up mechanism
+ * Pre-loads TTS connection to eliminate cold start latency
+ */
+async function warmUpTTS(): Promise<void> {
+  if (!activeSpeechProvider.value || !activeSpeechVoice.value)
+    return
+
+  if (activeSpeechProvider.value === 'speech-noop')
+    return
+
+  try {
+    const provider = await providersStore.getProviderInstance(activeSpeechProvider.value) as SpeechProviderWithExtraOptions<string, UnElevenLabsOptions>
+    if (!provider)
+      return
+
+    const providerConfig = providersStore.getProviderConfig(activeSpeechProvider.value)
+    const model = activeSpeechModel.value || 'tts-1'
+    const voice = activeSpeechVoice.value?.id || 'alloy'
+
+    // Warm up with a minimal request
+    await generateSpeech({
+      ...provider.speech(model, providerConfig),
+      input: ' ',
+      voice,
+    })
+
+    console.debug('[TTS] Warm-up completed')
+  }
+  catch {
+    // Silent fail - warm-up is best effort
+  }
+}
+
 const speechPipeline = createSpeechPipeline<AudioBuffer>({
   tts: async (request, signal) => {
     if (signal.aborted)
@@ -273,10 +336,23 @@ const speechPipeline = createSpeechPipeline<AudioBuffer>({
 
     const providerConfig = providersStore.getProviderConfig(activeSpeechProvider.value)
 
+    // P1: Try middleware voice settings first, fallback to localStorage
+    const middlewareVoice = await fetchVoiceSettingsFromMiddleware()
+
     // For OpenAI Compatible providers, always use provider config for model and voice
     // since these are manually configured in provider settings
-    let model = activeSpeechModel.value
-    let voice = activeSpeechVoice.value
+    let model = middlewareVoice?.model || activeSpeechModel.value
+    let voice = middlewareVoice?.voiceId
+      ? {
+          id: middlewareVoice.voiceId,
+          name: middlewareVoice.voiceId,
+          description: middlewareVoice.voiceId,
+          previewURL: '',
+          languages: [{ code: 'en', title: 'English' }],
+          provider: activeSpeechProvider.value,
+          gender: 'neutral',
+        }
+      : activeSpeechVoice.value
 
     if (activeSpeechProvider.value === 'openai-compatible-audio-speech') {
       // Always prefer provider config for OpenAI Compatible (user configured it there)
@@ -547,6 +623,8 @@ if (typeof window !== 'undefined') {
 
 onMounted(async () => {
   await getDb() // stub for future update
+  // P1: Warm up TTS after a short delay to eliminate cold start
+  setTimeout(warmUpTTS, 2000)
 })
 
 watch([stageModelRenderer, () => props.paused], ([renderer]) => {

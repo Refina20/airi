@@ -15,6 +15,7 @@ import { Hono } from 'hono'
 import { WebSocketServer } from 'ws'
 
 import { ExpressionStore } from './store.js'
+import { VoiceSettingsStore } from './voice-store.js'
 
 // Minimal WebSocket interface shared between ws and DOM
 interface WsLike { on: (event: string, handler: (...args: any[]) => void) => any, readyState: number, send: (data: string) => void, close: () => void }
@@ -22,6 +23,7 @@ interface WsLike { on: (event: string, handler: (...args: any[]) => void) => any
 // ---- Global Store ----------------------------------------------------------
 
 const store = new ExpressionStore()
+const voiceStore = new VoiceSettingsStore('./data')
 const app = new Hono()
 
 // ---- HTTP API Routes -------------------------------------------------------
@@ -66,6 +68,26 @@ app.get('/api/expressions/names', (c) => {
 /** GET /api/expressions/model - Get current model ID */
 app.get('/api/expressions/model', (c) => {
   return c.json({ modelId: store.getModelId() })
+})
+
+// ---- Voice Settings API Routes -----------------------------------------------
+
+/** GET /api/voice/settings - Get current voice settings */
+app.get('/api/voice/settings', (c) => {
+  return c.json({ success: true, settings: voiceStore.getSettings() })
+})
+
+/** POST /api/voice/settings - Update voice settings */
+app.post('/api/voice/settings', async (c) => {
+  const body = await c.req.json()
+  voiceStore.setSettings(body)
+  return c.json({ success: true, settings: voiceStore.getSettings() })
+})
+
+/** GET /api/voice/settings/quick - Get quick voice info */
+app.get('/api/voice/settings/quick', (c) => {
+  const s = voiceStore.getSettings()
+  return c.json({ success: true, voiceId: s.voiceId, provider: s.provider, model: s.model })
 })
 
 // ---- WebSocket Endpoint ----------------------------------------------------

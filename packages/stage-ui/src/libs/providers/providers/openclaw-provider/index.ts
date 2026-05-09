@@ -10,10 +10,10 @@ import { DEFAULT_BASE_URL } from './shared'
 
 /**
  * Session key for OpenClaw Gateway x-openclaw-session-key header.
- * Using a fixed key so all Airi requests share the same subagent session,
- * enabling conversation memory across turns.
+ * Routes all Airi requests to the main session (agent:main:main)
+ * instead of creating new subagents, avoiding context file reload overhead.
  */
-const OPENCLAW_SESSION_KEY = 'airi-openclaw-session'
+const OPENCLAW_SESSION_KEY = 'agent:main:main'
 
 const openClawConfigSchema = z.object({
   apiKey: z

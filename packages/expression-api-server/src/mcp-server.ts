@@ -14,6 +14,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { z } from 'zod'
 
 const API_BASE = 'http://127.0.0.1:3100/api/expressions'
 
@@ -55,11 +56,11 @@ server.registerTool(
   'expression_set',
   {
     description: 'Set a Live2D expression or parameter value. Use a boolean (true/false) to toggle an expression, or a number (0.0-1.0) for fine control. Optionally provide a duration in seconds for auto-reset.',
-    inputSchema: {
-      name: { type: 'string', description: 'Expression name or Live2D parameter ID (e.g. "Cry", "ParamWatermarkOFF")' },
-      value: { type: ['boolean', 'number'], description: 'true/false for toggle, or 0.0-1.0 for numeric control' },
-      duration: { type: ['number', 'null'], description: 'Seconds until auto-reset to default. Omit for permanent change.' },
-    },
+    inputSchema: z.object({
+      name: z.string().describe('Expression name or Live2D parameter ID (e.g. "Cry", "ParamWatermarkOFF")'),
+      value: z.union([z.boolean(), z.number()]).describe('true/false for toggle, or 0.0-1.0 for numeric control'),
+      duration: z.number().optional().describe('Seconds until auto-reset to default. Omit for permanent change.'),
+    }),
   },
   async ({ name, value, duration }) => {
     const available = await isApiAvailable()
@@ -84,9 +85,9 @@ server.registerTool(
   'expression_get',
   {
     description: 'Get the current state of a Live2D expression or parameter. Omit the name to list all available expressions with their current values.',
-    inputSchema: {
-      name: { type: ['string', 'null'], description: 'Expression name or parameter ID. Omit to list all.' },
-    },
+    inputSchema: z.object({
+      name: z.string().optional().describe('Expression name or parameter ID. Omit to list all.'),
+    }),
   },
   async ({ name }) => {
     const available = await isApiAvailable()
@@ -108,10 +109,10 @@ server.registerTool(
   'expression_toggle',
   {
     description: 'Toggle a Live2D expression (flip between default and active state). Optionally provide a duration in seconds for auto-reset.',
-    inputSchema: {
-      name: { type: 'string', description: 'Expression name or parameter ID to toggle' },
-      duration: { type: ['number', 'null'], description: 'Seconds until auto-reset. Omit for permanent toggle.' },
-    },
+    inputSchema: z.object({
+      name: z.string().describe('Expression name or parameter ID to toggle'),
+      duration: z.number().optional().describe('Seconds until auto-reset. Omit for permanent toggle.'),
+    }),
   },
   async ({ name, duration }) => {
     const available = await isApiAvailable()
@@ -136,7 +137,7 @@ server.registerTool(
   'expression_reset_all',
   {
     description: 'Reset all expressions to their default values.',
-    inputSchema: {},
+    inputSchema: z.object({}),
   },
   async () => {
     const available = await isApiAvailable()
@@ -158,7 +159,7 @@ server.registerTool(
   'expression_save_defaults',
   {
     description: 'Save the current expression state as the new defaults. Persists across app restarts.',
-    inputSchema: {},
+    inputSchema: z.object({}),
   },
   async () => {
     const available = await isApiAvailable()

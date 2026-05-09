@@ -41,6 +41,42 @@ export const useSpeechStore = defineStore('speech', () => {
   const availableVoices = refManualReset<Record<string, VoiceInfo[]>>(() => ({}))
   const modelSearchQuery = refManualReset<string>('')
 
+  // Sync voice settings to expression-api-server middleware (port 3100)
+  const VOICE_API = 'http://127.0.0.1:3100/api/voice/settings'
+
+  async function syncVoiceToMiddleware(
+    voiceId: string,
+    provider: string,
+    model: string,
+  ) {
+    if (!voiceId)
+      return
+    try {
+      await fetch(VOICE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voiceId, provider, model }),
+      })
+    }
+    catch (err) {
+      console.warn('[VoiceSettings] Failed to sync to middleware:', err)
+    }
+  }
+
+  // Watch voiceId + provider + model and sync to middleware when voiceId changes
+  watch(
+    () => ({
+      voiceId: activeSpeechVoiceId.value,
+      provider: activeSpeechProvider.value,
+      model: activeSpeechModel.value,
+    }),
+    ({ voiceId, provider, model }) => {
+      if (voiceId)
+        syncVoiceToMiddleware(voiceId, provider, model)
+    },
+    { deep: true },
+  )
+
   // Computed properties
   const availableSpeechProvidersMetadata = computed(() => allAudioSpeechProvidersMetadata.value)
 

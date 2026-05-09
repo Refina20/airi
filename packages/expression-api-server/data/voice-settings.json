@@ -1,0 +1,9 @@
+{
+  "voiceId": "nova",
+  "provider": "openai",
+  "model": "tts-1-hd",
+  "pitch": 0,
+  "rate": 1,
+  "volume": 1,
+  "ssmlEnabled": false
+}

@@ -139,8 +139,9 @@ export function createChatHooks(): ChatHookRegistry {
   }
 
   async function emitTokenLiteralHooks(literal: string, context: ChatStreamEventContext) {
-    for (const hook of onTokenLiteralHooks)
-      await hook(literal, context)
+    // Run hooks in parallel to reduce per-token latency
+    // (Sequential await adds cumulative delay proportional to hook count)
+    await Promise.allSettled(onTokenLiteralHooks.map(hook => hook(literal, context)))
   }
 
   async function emitTokenSpecialHooks(special: string, context: ChatStreamEventContext) {
